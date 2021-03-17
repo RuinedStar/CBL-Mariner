@@ -2,7 +2,8 @@
     "packages": [
         "libseccomp",
         "libtirpc",
-        "libnvidia-container",
+        "libnvidia-container1",
+        "libnvidia-container-tools",  
         "nvidia-container-toolkit",
         "nvidia-container-runtime"
     ]
