@@ -38,11 +38,11 @@ jobs:
           sudo make meta-user-data
           popd
       
-      - name: Upload the iso image
+      - name: Upload the VHDX and sign-in image
         uses: actions/upload-artifact@v2
         if: success()  # upload iso only if previous steps are successful.
         with:
           name: CBL-Mariner-nvpkgs
           path: |
-            out/images/full/*.iso
+            out/images/core-efi-nvpkg/*.vhdx
             out/images/meta-user-data.iso
