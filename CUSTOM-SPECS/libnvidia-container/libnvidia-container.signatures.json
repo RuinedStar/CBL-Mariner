@@ -1,0 +1,9 @@
+{
+    "Signatures": {
+        "v1.3.3.tar.gz": "99ff64baeb3b7c3fa9938bd91637deda8982146f166f52e99fabe956aa04eb53",
+        "450.57.tar.gz": "396b4102d3075a2dee3024652fae206a1b38ace54b8efb1e2c20757a11ec19f1",
+        "0001-Fix-Hash-for-Release-Package.patch": "8bd198e8b38c3c583033dbe9782d315e579e2a2c82039dcbe288ad645b304921",
+        "0002-Avoid-Downloading-Dependencies.patch": "4c868cc2801e2dd71406a478148a27c021dfe040e11ee6d0790765e98d5c26bd",
+        "0003-Fix-RPC-RPC.h-not-Found.patch": "04725888717a881cdb87100481a13b980eb0908ee04c3534eb6e2abac278ff4c"
+    }
+}
