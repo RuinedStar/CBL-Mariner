@@ -1,0 +1,39 @@
+From b8ddf82ee84379a7919bb1da9674771a4a51ab2c Mon Sep 17 00:00:00 2001
+From: arthurlai <v-arthurlai@microsoft.com>
+Date: Wed, 17 Mar 2021 10:55:11 +0800
+Subject: [PATCH] Fix RPC/RPC.h not Found
+
+---
+ Makefile | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index fb19887..0613b95 100644
+--- a/Makefile
++++ b/Makefile
+@@ -130,9 +130,8 @@ else
+ LIB_LDLIBS_STATIC  += -l:libelf.a
+ endif
+ ifeq ($(WITH_TIRPC), yes)
+-LIB_CPPFLAGS       += -isystem $(DEPS_DIR)$(includedir)/tirpc -DWITH_TIRPC
+-LIB_LDLIBS_STATIC  += -l:libtirpc.a
+-LIB_LDLIBS_SHARED  += -lpthread
++LIB_CPPFLAGS       += $(shell pkg-config --cflags libtirpc) -DWITH_TIRPC
++LIB_LDLIBS_SHARED  += -lpthread $(shell pkg-config --libs libtirpc)
+ endif
+ ifeq ($(WITH_SECCOMP), yes)
+ LIB_CPPFLAGS       += -DWITH_SECCOMP $(shell pkg-config --cflags libseccomp)
+@@ -151,6 +150,10 @@ BIN_CFLAGS         = -I$(SRCS_DIR) -fPIE -flto $(CFLAGS)
+ BIN_LDFLAGS        = -L. -pie $(LDFLAGS) -Wl,-rpath='$$ORIGIN/../$$LIB'
+ BIN_LDLIBS         = -l:$(LIB_SHARED) -lcap $(LDLIBS)
+ 
++ifeq ($(WITH_TIRPC), yes)
++BIN_CFLAGS         += $(shell pkg-config --cflags libtirpc)
++endif
++
+ $(word 1,$(LIB_RPC_SRCS)): RPCGENFLAGS=-h
+ $(word 2,$(LIB_RPC_SRCS)): RPCGENFLAGS=-c
+ $(word 3,$(LIB_RPC_SRCS)): RPCGENFLAGS=-m
+-- 
+2.17.1
+

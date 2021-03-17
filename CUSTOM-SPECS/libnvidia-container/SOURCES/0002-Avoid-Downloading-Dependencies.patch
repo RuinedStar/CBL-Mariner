@@ -1,0 +1,55 @@
+From efa7e704d70d35dd4ebbaa0a147aed656bf2dc1f Mon Sep 17 00:00:00 2001
+From: arthurlai <v-arthurlai@microsoft.com>
+Date: Tue, 16 Mar 2021 16:12:17 +0800
+Subject: [PATCH] Avoid Downloading Dependencies
+
+---
+ Makefile              | 10 +++++-----
+ mk/nvidia-modprobe.mk |  3 +--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index c07863b..fb19887 100644
+--- a/Makefile
++++ b/Makefile
+@@ -7,8 +7,8 @@
+ 
+ ##### Global variables #####
+ 
+-WITH_LIBELF  ?= no
+-WITH_TIRPC   ?= no
++WITH_LIBELF  ?= yes
++WITH_TIRPC   ?= yes
+ WITH_SECCOMP ?= yes
+ 
+ ##### Global definitions #####
+@@ -224,9 +224,9 @@ deps: $(LIB_RPC_SRCS) $(BUILD_DEFS)
+ ifeq ($(WITH_LIBELF), no)
+ 	$(MAKE) -f $(MAKE_DIR)/elftoolchain.mk install
+ endif
+-ifeq ($(WITH_TIRPC), yes)
+-	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk install
+-endif
++#ifeq ($(WITH_TIRPC), yes)
++#	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk install
++#endif
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 $(addprefix $(DESTDIR),$(includedir) $(bindir) $(libdir) $(docdir) $(libdbgdir) $(pkgconfdir))
+diff --git a/mk/nvidia-modprobe.mk b/mk/nvidia-modprobe.mk
+index c56d232..143a2a1 100644
+--- a/mk/nvidia-modprobe.mk
++++ b/mk/nvidia-modprobe.mk
+@@ -33,8 +33,7 @@ LIB_OBJS := $(LIB_SRCS:.c=.o)
+ 
+ $(SRCS_DIR)/.download_stamp:
+ 	$(MKDIR) -p $(SRCS_DIR)
+-	$(CURL) --progress-bar -fSL $(URL) | \
+-	$(TAR) -C $(SRCS_DIR) --strip-components=1 -xz $(PREFIX)/modprobe-utils
++	$(TAR) -C $(SRCS_DIR) --strip-components=1 -xz $(PREFIX)/modprobe-utils -f $(VERSION).tar.gz
+ 	$(PATCH) -d $(SRCS_DIR) -p1 < $(PATCH_FILE)
+ 	@touch $@
+ 
+-- 
+2.17.1
+
