@@ -1,0 +1,6 @@
+{
+    "Signatures": {
+     "v1.4.2.tar.gz": "8c3ff8dd96812dcc2c09b203d2749fcba51941e33387aba1bca4da2f87065a0c",
+     "0001-Build-Offline.patch": "b37d222302b651df12642e215c2b7cf2cbcd1fecb23091cfac564c5f7f70ef2d"
+    }
+}
