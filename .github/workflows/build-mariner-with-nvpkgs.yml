@@ -1,4 +1,4 @@
-name: Build CBL-Mariner Image
+name: Build CBL-Mariner VHDX including NVIDIA Packages
 
 on:
   push:

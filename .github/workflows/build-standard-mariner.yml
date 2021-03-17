@@ -1,4 +1,4 @@
-name: Build CBL-Mariner Image
+name: Build Standard CBL-Mariner Image
 
 on:
   push:
