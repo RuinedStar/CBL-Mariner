@@ -49,7 +49,7 @@ install -m 755 -t %{buildroot}%{_bindir} nvidia-container-runtime
 %{_bindir}/nvidia-container-runtime
 
 %changelog
-* Wed Mar 17 2021 MICROSOFT(via BEYONDSOFT) <v-arthurlai@microsoft.com> 3.4.2-1
+* Wed Mar 17 2021 MICROSOFT(via BEYONDSOFT) <v-arthurlai@microsoft.com> 3.4.2-2
 - Bump 3.4.2-1 to 3.4.2-2
 - Integrate into CBL-Mariner RPM build system
 
