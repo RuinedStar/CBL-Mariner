@@ -3,20 +3,19 @@
 %define uname_r %{version}-%{release}
 Summary:        Linux Kernel
 Name:           kernel
-Version:        5.4.91
-Release:        6%{?dist}
+Version:        5.10.42.1
+Release:        3%{?dist}
 License:        GPLv2
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Group:          System Environment/Kernel
-URL:            https://github.com/microsoft/WSL2-Linux-Kernel
-Source0:        https://github.com/microsoft/WSL2-Linux-Kernel/archive/linux-msft-%{version}.tar.gz
+URL:            https://github.com/microsoft/CBL-Mariner-Linux-Kernel
+#Source0:        https://github.com/microsoft/CBL-Mariner-Linux-Kernel/archive/rolling-lts/mariner/%{version}.tar.gz
+Source0:        kernel-%{version}.tar.gz
 Source1:        config
 Source2:        config_aarch64
 Source3:        sha512hmac-openssl.sh
-# Arm64 HyperV support required patch
-Patch0:         ver5_4_72_arm64_hyperv_support.patch
-Patch1:         efi-libstub-tpm-enable-tpm-eventlog-function-for-ARM.patch
+Source4:        cbl-mariner-ca-20210127.pem
 # Kernel CVEs are addressed by moving to a newer version of the stable kernel.
 # Since kernel CVEs are filed against the upstream kernel version and not the
 # stable kernel version, our automated tooling will still flag the CVE as not
@@ -131,6 +130,51 @@ Patch1100:      CVE-2020-27777.nopatch
 Patch1101:      CVE-2020-29569.nopatch
 Patch1102:      CVE-2020-28374.nopatch
 Patch1103:      CVE-2020-36158.nopatch
+Patch1104:      CVE-2021-26930.nopatch
+Patch1105:      CVE-2020-35499.nopatch
+Patch1106:      CVE-2021-26931.nopatch
+Patch1107:      CVE-2021-26932.nopatch
+Patch1108:      CVE-2021-27365.nopatch
+Patch1109:      CVE-2021-27364.nopatch
+Patch1110:      CVE-2021-27363.nopatch
+Patch1111:      CVE-2020-27170.nopatch
+Patch1112:      CVE-2020-27171.nopatch
+Patch1113:      CVE-2021-28375.nopatch
+Patch1114:      CVE-2021-28660.nopatch
+Patch1115:      CVE-2021-28950.nopatch
+Patch1116:      CVE-2021-28951.nopatch
+Patch1117:      CVE-2021-28952.nopatch
+Patch1118:      CVE-2021-28971.nopatch
+Patch1119:      CVE-2021-28972.nopatch
+Patch1120:      CVE-2021-29266.nopatch
+Patch1121:      CVE-2021-28964.nopatch
+Patch1122:      CVE-2020-35508.nopatch
+Patch1123:      CVE-2020-16120.nopatch
+Patch1124:      CVE-2021-29264.nopatch
+Patch1125:      CVE-2021-29265.nopatch
+Patch1126:      CVE-2021-29646.nopatch
+Patch1127:      CVE-2021-29647.nopatch
+Patch1128:      CVE-2021-29649.nopatch
+Patch1129:      CVE-2021-29650.nopatch
+Patch1130:      CVE-2021-30002.nopatch
+# CVE-2021-29648 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1131:      CVE-2021-29648.nopatch
+Patch1132:      CVE-2021-23133.nopatch
+Patch1133:      CVE-2021-29154.nopatch
+# CVE-2021-30178 - Introducing commit not in stable tree. No fix necessary at this time.
+Patch1134:      CVE-2021-30178.nopatch
+Patch1135:      CVE-2021-23134.nopatch
+Patch1136:      CVE-2021-29155.nopatch
+Patch1137:      CVE-2021-31829.nopatch
+Patch1138:      CVE-2021-31916.nopatch
+Patch1139:      CVE-2021-32399.nopatch
+Patch1140:      CVE-2021-33033.nopatch
+Patch1141:      CVE-2021-33034.nopatch
+Patch1142:      CVE-2021-3483.nopatch
+Patch1143:      CVE-2021-3501.nopatch
+Patch1144:      CVE-2021-3506.nopatch
+Patch1145:      CVE-2020-25672.nopatch
+Patch1146:      CVE-2021-33200.nopatch
 BuildRequires:  audit-devel
 BuildRequires:  bash
 BuildRequires:  bc
@@ -144,6 +188,8 @@ BuildRequires:  openssl
 BuildRequires:  openssl-devel
 BuildRequires:  pam-devel
 BuildRequires:  procps-ng-devel
+BuildRequires:  python3
+BuildRequires:  sed
 BuildRequires:  xerces-c-devel
 Requires:       filesystem
 Requires:       kmod
@@ -176,6 +222,14 @@ Obsoletes:      linux-dev
 
 %description devel
 This package contains the Linux kernel dev files
+
+%package drivers-accessibility
+Summary:        Kernel accessibility modules
+Group:          System Environment/Kernel
+Requires:       %{name} = %{version}-%{release}
+
+%description drivers-accessibility
+This package contains the Linux kernel accessibility support
 
 %package drivers-sound
 Summary:        Kernel Sound modules
@@ -220,13 +274,7 @@ Group:          System Environment/Kernel
 This package contains common device tree blobs (dtb)
 
 %prep
-%setup -q -n WSL2-Linux-Kernel-linux-msft-%{version}
-
-%ifarch aarch64
-%patch0 -p1
-%endif
-
-%patch1 -p1
+%setup -q -n CBL-Mariner-Linux-Kernel-rolling-lts-mariner-%{version}
 
 %build
 make mrproper
@@ -262,6 +310,9 @@ if [ -s config_diff ]; then
     exit 1
 fi
 
+# Add CBL-Mariner cert into kernel's trusted keyring
+cp %{SOURCE4} certs/mariner.pem
+
 make VERBOSE=1 KBUILD_BUILD_VERSION="1" KBUILD_BUILD_HOST="CBL-Mariner" ARCH=${arch} %{?_smp_mflags}
 make -C tools perf
 
@@ -291,18 +342,6 @@ install -vdm 755 %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}
 make INSTALL_MOD_PATH=%{buildroot} modules_install
 
 %ifarch x86_64
-# Verify for build-id match
-# We observe different IDs sometimes
-# TODO: debug it
-ID1=`readelf -n vmlinux | grep "Build ID"`
-./scripts/extract-vmlinux arch/x86/boot/bzImage > extracted-vmlinux
-ID2=`readelf -n extracted-vmlinux | grep "Build ID"`
-if [ "$ID1" != "$ID2" ] ; then
-        echo "Build IDs do not match"
-        echo $ID1
-        echo $ID2
-        exit 1
-fi
 install -vm 600 arch/x86/boot/bzImage %{buildroot}/boot/vmlinuz-%{uname_r}
 %endif
 
@@ -321,7 +360,7 @@ ln -s vmlinux-%{uname_r} %{buildroot}%{_lib}/debug/lib/modules/%{uname_r}/vmlinu
 
 cat > %{buildroot}/boot/linux-%{uname_r}.cfg << "EOF"
 # GRUB Environment Block
-mariner_cmdline=init=/lib/systemd/systemd ro loglevel=3 quiet no-vmw-sta crashkernel=128M
+mariner_cmdline=init=/lib/systemd/systemd ro loglevel=3 quiet no-vmw-sta crashkernel=128M lockdown=integrity
 mariner_linux=vmlinuz-%{uname_r}
 mariner_initrd=initrd.img-%{uname_r}
 EOF
@@ -334,7 +373,7 @@ cp %{buildroot}/boot/.vmlinuz-%{uname_r}.hmac %{buildroot}/lib/modules/%{uname_r
 # Register myself to initramfs
 mkdir -p %{buildroot}/%{_localstatedir}/lib/initramfs/kernel
 cat > %{buildroot}/%{_localstatedir}/lib/initramfs/kernel/%{uname_r} << "EOF"
---add-drivers "xen-scsifront xen-blkfront xen-acpi-processor xen-evtchn xen-gntalloc xen-gntdev xen-privcmd xen-pciback xenfs hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon cn"
+--add-drivers "xen-scsifront xen-blkfront xen-acpi-processor xen-evtchn xen-gntalloc xen-gntdev xen-privcmd xen-pciback xenfs hv_utils hv_vmbus hv_storvsc hv_netvsc hv_sock hv_balloon cn virtio_blk virtio-rng virtio_console virtio_crypto virtio_mem vmw_vsock_virtio_transport vmw_vsock_virtio_transport_common 9pnet_virtio"
 EOF
 
 #    Cleanup dangling symlinks
@@ -356,7 +395,7 @@ ln -sf "%{_prefix}/src/linux-headers-%{uname_r}" "%{buildroot}/lib/modules/%{una
 find %{buildroot}/lib/modules -name '*.ko' -print0 | xargs -0 chmod u+x
 
 %ifarch aarch64
-cp arch/arm64/kernel/module.lds %{buildroot}%{_prefix}/src/linux-headers-%{uname_r}/arch/arm64/kernel/
+cp scripts/module.lds %{buildroot}%{_prefix}/src/linux-headers-%{uname_r}/scripts/module.lds
 %endif
 
 # disable (JOBS=1) parallel build to fix this issue:
@@ -388,6 +427,9 @@ fi
 %post
 /sbin/depmod -a %{uname_r}
 ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
+
+%post drivers-accessibility
+/sbin/depmod -a %{uname_r}
 
 %post drivers-sound
 /sbin/depmod -a %{uname_r}
@@ -425,6 +467,10 @@ ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
 /lib/modules/%{uname_r}/build
 %{_prefix}/src/linux-headers-%{uname_r}
 
+%files drivers-accessibility
+%defattr(-,root,root)
+/lib/modules/%{uname_r}/kernel/drivers/accessibility
+
 %files drivers-sound
 %defattr(-,root,root)
 /lib/modules/%{uname_r}/kernel/sound
@@ -459,7 +505,96 @@ ln -sf linux-%{uname_r}.cfg /boot/mariner.cfg
 %endif
 
 %changelog
-* Tue Feb 23 2021 Chris Co <chrco@microsoft.com> - 5.4.91-6
+* Tue Jun 22 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 5.10.42.1-3
+- Enable CONFIG_IOSCHED_BFQ and CONFIG_BFQ_GROUP_IOSCHED configs
+
+* Wed Jun 16 2021 Chris Co <chrco@microsoft.com> - 5.10.42.1-2
+- Enable CONFIG_CROSS_MEMORY_ATTACH
+
+* Tue Jun 08 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.42.1-1
+- Update source to 5.10.42.1
+- Address CVE-2021-33200
+
+* Thu Jun 03 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.37.1-2
+- Address CVE-2020-25672 
+
+* Fri May 28 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.37.1-1
+- Update source to 5.10.37.1
+- Address CVE-2021-23134, CVE-2021-29155, CVE-2021-31829, CVE-2021-31916, 
+  CVE-2021-32399, CVE-2021-33033, CVE-2021-33034, CVE-2021-3483
+  CVE-2021-3501, CVE-2021-3506
+
+* Thu May 27 2021 Chris Co <chrco@microsoft.com> - 5.10.32.1-7
+- Set lockdown=integrity by default
+
+* Wed May 26 2021 Chris Co <chrco@microsoft.com> - 5.10.32.1-6
+- Add Mariner cert into the trusted kernel keyring
+
+* Tue May 25 2021 Daniel Mihai <dmihai@microsoft.com> - 5.10.32.1-5
+- Enable kernel debugger
+
+* Thu May 20 2021 Nicolas Ontiveros <niontive@microsoft.com> - 5.10.32.1-4
+- Bump release number to match kernel-signed update
+
+* Tue May 17 2021 Andrew Phelps <anphel@microsoft.com> - 5.10.32.1-3
+- Update CONFIG_LD_VERSION for binutils 2.36.1
+- Remove build-id match check
+
+* Thu May 13 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.32.1-2
+- Add CONFIG_AS_HAS_LSE_ATOMICS=y
+
+* Mon May 03 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.32.1-1
+- Update source to 5.10.32.1
+- Address CVE-2021-23133, CVE-2021-29154, CVE-2021-30178
+
+* Thu Apr 22 2021 Chris Co <chrco@microsoft.com> - 5.10.28.1-4
+- Disable CONFIG_EFI_DISABLE_PCI_DMA. It can cause boot issues on some hardware.
+
+* Mon Apr 19 2021 Chris Co <chrco@microsoft.com> - 5.10.28.1-3
+- Bump release number to match kernel-signed update
+
+* Thu Apr 15 2021 Rachel Menge <rachelmenge@microsoft.com> - 5.10.28.1-2
+- Address CVE-2021-29648
+
+* Thu Apr 08 2021 Chris Co <chrco@microsoft.com> - 5.10.28.1-1
+- Update source to 5.10.28.1
+- Update uname_r define to match the new value derived from the source
+- Address CVE-2020-27170, CVE-2020-27171, CVE-2021-28375, CVE-2021-28660,
+  CVE-2021-28950, CVE-2021-28951, CVE-2021-28952, CVE-2021-28971,
+  CVE-2021-28972, CVE-2021-29266, CVE-2021-28964, CVE-2020-35508,
+  CVE-2020-16120, CVE-2021-29264, CVE-2021-29265, CVE-2021-29646,
+  CVE-2021-29647, CVE-2021-29649, CVE-2021-29650, CVE-2021-30002
+
+* Fri Mar 26 2021 Daniel Mihai <dmihai@microsoft.com> - 5.10.21.1-4
+- Enable CONFIG_CRYPTO_DRBG_HASH, CONFIG_CRYPTO_DRBG_CTR
+
+* Thu Mar 18 2021 Chris Co <chrco@microsoft.com> - 5.10.21.1-3
+- Address CVE-2021-27365, CVE-2021-27364, CVE-2021-27363
+- Enable CONFIG_FANOTIFY_ACCESS_PERMISSIONS
+
+* Wed Mar 17 2021 Nicolas Ontiveros <niontive@microsoft.com> - 5.10.21.1-2
+- Disable QAT kernel configs
+
+* Thu Mar 11 2021 Chris Co <chrco@microsoft.com> - 5.10.21.1-1
+- Update source to 5.10.21.1
+- Add virtio drivers to be installed into initrd
+- Address CVE-2021-26930, CVE-2020-35499, CVE-2021-26931, CVE-2021-26932
+
+* Fri Mar 05 2021 Chris Co <chrco@microsoft.com> - 5.10.13.1-4
+- Enable kernel lockdown config
+
+* Thu Mar 04 2021 Suresh Babu Chalamalasetty <schalam@microsoft.com> - 5.10.13.1-3
+- Add configs for CONFIG_BNXT bnxt_en and MSR drivers
+
+* Mon Feb 22 2021 Thomas Crain <thcrain@microsoft.com> - 5.10.13.1-2
+- Add configs for speakup and uinput drivers
+- Add kernel-drivers-accessibility subpackage
+
+* Thu Feb 18 2021 Chris Co <chrco@microsoft.com> - 5.10.13.1-1
+- Update source to 5.10.13.1
+- Remove patch to publish efi tpm event log on ARM. Present in updated source.
+- Remove patch for arm64 hyperv support. Present in updated source.
+- Account for new module.lds location on aarch64
 - Remove CONFIG_GCC_PLUGIN_RANDSTRUCT
 - Add CONFIG_SCSI_SMARTPQI=y
 

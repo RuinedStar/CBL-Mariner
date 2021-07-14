@@ -2,7 +2,7 @@
 Summary:        OpenLDAP (Lightweight Directory Access Protocol)
 Name:           openldap
 Version:        2.4.57
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        OpenLDAP
 URL:            https://www.openldap.org/
 Group:          System Environment/Security
@@ -14,6 +14,7 @@ Source0:        https://gpl.savoirfairelinux.net/pub/mirrors/openldap/openldap-r
 Patch0:         openldap-2.4.40-gssapi-1.patch
 Patch1:         openldap-2.4.44-consolidated-2.patch
 Patch2:         CVE-2015-3276.patch
+Patch3:         CVE-2021-27212.patch
 Requires:       openssl >= 1.0.1, cyrus-sasl >= 2.1
 BuildRequires:  cyrus-sasl >= 2.1
 BuildRequires:  openssl-devel >= 1.0.1
@@ -76,6 +77,8 @@ rm -rf %{buildroot}/*
 /etc/openldap/*
 
 %changelog
+*   Thu Feb 25 2021 Nicolas Guibourge <nicolasg@microsoft.com> - 2.4.57-2
+-   Resolve CVE-2021-27212
 *   Fri Jan 29 2021 Henry Li <lihl@microsoft.com> - 2.4.57-1
 -   Upgrade to version 2.4.57
 -   Resolve CVE-2020-36221, CVE-2020-36222, CVE-2020-36223, CVE-2020-36224, CVE-2020-36225
@@ -90,7 +93,7 @@ rm -rf %{buildroot}/*
 -   Upgrade to version 2.4.50, which resolves CVE-2020-12243.
 *   Tue May 12 2020 Nicolas Ontiveros <niontive@microsoft.com> 2.4.48-1
 -   Upgrade to version 2.4.48, which fixes CVE-2019-13057 and CVE-2019-13565.
-*   Sat May 09 00:20:53 PST 2020 Nick Samson <nisamson@microsoft.com> - 2.4.46-6
+*   Sat May 09 2020 Nick Samson <nisamson@microsoft.com> - 2.4.46-6
 -   Added %%license line automatically
 *   Thu Apr 23 2020 Pawel Winogrodzki <pawelwi@microsoft.com> 2.4.46-5
 -   License verified.

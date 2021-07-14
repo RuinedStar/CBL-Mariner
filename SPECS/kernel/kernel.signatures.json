@@ -1,8 +1,9 @@
 {
  "Signatures": {
-  "config": "2020db9b7b3c39f855ae18b906c3a41e7733b428bfd27a3d2af32849583c32ec",
-  "config_aarch64": "bff0d16dda6c2345f042dcd2671a51b4eaf83b17b8f737aa279665c355d830c3",
-  "linux-msft-5.4.91.tar.gz": "5f36254d8e78d0a17b7103df4a37d706b6f24a7cc343c938a8b6453e4137c97c",
+  "cbl-mariner-ca-20210127.pem": "82363cb44e786353936abc2e2d62d9325cacf2d9e9a8ebaf4221ea30a9e0cd7b",
+  "config": "61913abb87447453b3faff6557f3eec54ede2018b9f6a900b853ba9c08eabf6f",
+  "config_aarch64": "a37a74513d5ae83aaf1f58332dd6b0b62de162f7c6a0ccab1b838a53e160a741",
+  "kernel-5.10.42.1.tar.gz": "47bb149f6ad2fc7d0ad8b31e3fcc0d3b1e5b25069d12f4d1e06dfc0b3c4b32ee",
   "sha512hmac-openssl.sh": "02ab91329c4be09ee66d759e4d23ac875037c3b56e5a598e32fd1206da06a27f"
  }
 }

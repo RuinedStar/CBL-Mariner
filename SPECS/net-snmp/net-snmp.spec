@@ -2,7 +2,7 @@
 Summary:        Net-SNMP is a suite of applications used to implement SNMP v1, SNMP v2c and SNMP v3 using both IPv4 and IPv6.
 Name:           net-snmp
 Version:        5.9
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        MIT
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
@@ -62,7 +62,9 @@ install -m 0644 %{SOURCE1} %{buildroot}/lib/systemd/system/snmpd.service
 install -m 0644 %{SOURCE2} %{buildroot}/lib/systemd/system/snmptrapd.service
 
 %check
-make %{?_smp_mflags} test
+pushd testing
+./RUNFULLTESTS -g unit-tests
+popd
 
 %post
 /sbin/ldconfig
@@ -103,6 +105,9 @@ rm -rf %{buildroot}/*
 %exclude %{_lib}/perl5/*/*/perllocal.pod
 
 %changelog
+* Wed Mar 03 2021 Andrew Phelps <anphel@microsoft.com> - 5.9-3
+- Modify check section to run only unit-tests
+
 * Tue Nov 10 2020 Andrew Phelps <anphel@microsoft.com> - 5.9-2
 - Fix check test by adding net-tools build requirement.
 
@@ -113,7 +118,7 @@ rm -rf %{buildroot}/*
 - Removed %%sha1 macro.
 - Updating whitespaces to fix issues reported by the linter.
 
-* Sat May 09 00:20:48 PST 2020 Nick Samson <nisamson@microsoft.com> - 5.8-4
+* Sat May 09 2020 Nick Samson <nisamson@microsoft.com> - 5.8-4
 - Added %%license line automatically
 
 * Tue Sep 03 2019 Mateusz Malisz <mamalisz@microsoft.com> - 5.8-3

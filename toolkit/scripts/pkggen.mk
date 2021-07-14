@@ -67,6 +67,11 @@ $(graph_file): $(specs_file) $(go-grapher)
 		$(logging_command) \
 		--output $@
 
+graphoptimizer_extra_flags :=
+ifeq ($(REBUILD_DEP_CHAINS), y)
+graphoptimizer_extra_flags += --rebuild-missing-dep-chains
+endif
+
 # Remove any packages which don't need to be built, and flag any for rebuild if
 # their dependencies are updated.
 ifneq ($(CONFIG_FILE),)
@@ -80,13 +85,13 @@ $(optimized_file): $(graph_file) $(go-graphoptimizer) $(depend_PACKAGE_BUILD_LIS
 		--input $(graph_file) \
 		--rpm-dir $(RPMS_DIR) \
 		--dist-tag $(DIST_TAG) \
-		--rebuild-missing-dep-chains \
 		--packages "$(PACKAGE_BUILD_LIST)" \
 		--rebuild-packages="$(PACKAGE_REBUILD_LIST)" \
 		--ignore-packages="$(PACKAGE_IGNORE_LIST)" \
 		--image-config-file="$(CONFIG_FILE)" \
 		$(if $(CONFIG_FILE),--base-dir=$(CONFIG_BASE_DIR)) \
 		$(logging_command) \
+		$(graphoptimizer_extra_flags) \
 		--output $@
 
 # We want to detect changes in the RPM cache, but we are not responsible for directly rebuilding any missing files.
@@ -176,19 +181,19 @@ $(STATUS_FLAGS_DIR)/build-rpms.flag: $(workplan) $(chroot_worker) $(go-pkgworker
 ifeq ($(RUN_CHECK),y)
 	$(warning Make argument 'RUN_CHECK' set to 'y', running package tests. Will add the 'ca-certificates' package and enable networking for package builds.)
 endif
-	rm -f $(LOGS_DIR)/pkggen/failures.txt && \
+	@rm -f $(LOGS_DIR)/pkggen/failures.txt && \
 	$(MAKE) --silent -f $(workplan) go-pkgworker=$(go-pkgworker) CHROOT_DIR=$(CHROOT_DIR) chroot_worker=$(chroot_worker) SRPMS_DIR=$(SRPMS_DIR) RPMS_DIR=$(RPMS_DIR) pkggen_local_repo=$(pkggen_local_repo) LOGS_DIR=$(LOGS_DIR) TOOLCHAIN_MANIFESTS_DIR=$(TOOLCHAIN_MANIFESTS_DIR) GOAL_PackagesToBuild && \
 	{ [ ! -f $(LOGS_DIR)/pkggen/failures.txt ] || \
 		$(call print_error,Failed to build: $$(cat $(LOGS_DIR)/pkggen/failures.txt)); } && \
 	touch $@
 
-# use temp tarball to avoid tar warning "file changed as we read it" 
+# use temp tarball to avoid tar warning "file changed as we read it"
 # that can sporadically occur when tarball is the dir that is compressed
 compress-rpms:
 	tar -I $(ARCHIVE_TOOL) -cvp -f $(BUILD_DIR)/temp_rpms_tarball.tar.gz -C $(RPMS_DIR)/.. $(notdir $(RPMS_DIR))
 	mv $(BUILD_DIR)/temp_rpms_tarball.tar.gz $(pkggen_archive)
 
-# use temp tarball to avoid tar warning "file changed as we read it" 
+# use temp tarball to avoid tar warning "file changed as we read it"
 # that can sporadically occur when tarball is the dir that is compressed
 compress-srpms:
 	tar -I $(ARCHIVE_TOOL) -cvp -f $(BUILD_DIR)/temp_srpms_tarball.tar.gz -C $(SRPMS_DIR)/.. $(notdir $(SRPMS_DIR))

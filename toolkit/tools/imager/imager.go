@@ -456,6 +456,7 @@ func buildImage(mountPointMap, mountPointToFsTypeMap, mountPointToMountArgsMap m
 		installRoot       = "/installroot"
 		verityWorkingDir  = "verityworkingdir"
 		emptyWorkerTar    = ""
+		rootDir           = "/"
 		existingChrootDir = true
 		leaveChrootOnDisk = true
 	)
@@ -473,16 +474,28 @@ func buildImage(mountPointMap, mountPointToFsTypeMap, mountPointToMountArgsMap m
 		defer installutils.DestroyInstallRoot(installRoot, installMap, mountPointToOverlayMap)
 	}
 
+	// Install any tools required for the setup root to function
+	setupChrootPackages := []string{}
+	toolingPackages := installutils.GetRequiredPackagesForInstall()
+	for _, toolingPackage := range toolingPackages {
+		setupChrootPackages = append(setupChrootPackages, toolingPackage.Name)
+	}
+
+	logger.Log.Infof("HidepidDisabled is %v.", systemConfig.HidepidDisabled)
+	hidepidEnabled := !systemConfig.HidepidDisabled
+
 	if systemConfig.ReadOnlyVerityRoot.Enable {
 		// We will need the veritysetup package (and its dependencies) to manage the verity disk, add them to our
 		// image setup environment (setuproot chroot or live installer).
 		verityPackages := []string{"device-mapper", "veritysetup"}
-		for _, pkg := range verityPackages {
-			_, err = installutils.TdnfInstall(pkg, "/")
-			if err != nil {
-				err = fmt.Errorf("failed to install read only support package '%s': %w", pkg, err)
-				return
-			}
+		setupChrootPackages = append(setupChrootPackages, verityPackages...)
+	}
+
+	for _, setupChrootPackage := range setupChrootPackages {
+		_, err = installutils.TdnfInstall(setupChrootPackage, rootDir)
+		if err != nil {
+			err = fmt.Errorf("failed to install required setup chroot package '%s': %w", setupChrootPackage, err)
+			return
 		}
 	}
 
@@ -498,7 +511,7 @@ func buildImage(mountPointMap, mountPointToFsTypeMap, mountPointToMountArgsMap m
 	defer installChroot.Close(leaveChrootOnDisk)
 
 	// Populate image contents
-	err = installutils.PopulateInstallRoot(installChroot, packagesToInstall, systemConfig, installMap, mountPointToFsTypeMap, mountPointToMountArgsMap, isRootFS, encryptedRoot, diffDiskBuild)
+	err = installutils.PopulateInstallRoot(installChroot, packagesToInstall, systemConfig, installMap, mountPointToFsTypeMap, mountPointToMountArgsMap, isRootFS, encryptedRoot, diffDiskBuild, hidepidEnabled)
 	if err != nil {
 		err = fmt.Errorf("failed to populate image contents: %s", err)
 		return
@@ -562,14 +575,6 @@ func configureDiskBootloader(systemConfig configuration.SystemConfig, installChr
 	}
 
 	bootType := systemConfig.BootType
-	if systemConfig.Encryption.Enable && bootType == "legacy" {
-		err = installutils.EnableCryptoDisk(installChroot)
-		if err != nil {
-			err = fmt.Errorf("Unable to enable crypto disk: %s", err)
-			return
-		}
-	}
-
 	err = installutils.InstallBootloader(installChroot, systemConfig.Encryption.Enable, bootType, bootUUID, bootPrefix, diskDevPath)
 	if err != nil {
 		err = fmt.Errorf("failed to install bootloader: %s", err)

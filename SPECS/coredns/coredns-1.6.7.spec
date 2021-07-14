@@ -3,16 +3,32 @@
 Summary:        Fast and flexible DNS server
 Name:           coredns
 Version:        1.6.7
-Release:        1%{?dist}
+Release:        3%{?dist}
 License:        Apache License 2.0
 Vendor:         Microsoft Corporation
 Distribution:   Mariner
 Group:          System Environment/Libraries
 URL:            https://github.com/coredns/coredns
-#Source0:       https://github.com/coredns/coredns/archive/v1.6.7.tar.gz
+#Source0:       https://github.com/coredns/coredns/archive/v%%{version}.tar.gz
 Source0:        %{name}-%{version}.tar.gz
-# use go modules from tarball because they cannot be downloaded at build time
-# (build system prevents that)
+# Below is a manually created tarball, no download link.
+# We're using pre-populated Go modules from this tarball, since network is disabled during build time.
+# How to re-build this file:
+#   1. wget https://github.com/coredns/coredns/archive/v%%{version}.tar.gz -O %%{name}-%%{version}.tar.gz
+#   2. tar -xf %%{name}-%%{version}.tar.gz
+#   3. cd %%{name}-%%{version}
+#   4. go mod vendor
+#   5. tar  --sort=name \
+#           --mtime="2021-04-26 00:00Z" \
+#           --owner=0 --group=0 --numeric-owner \
+#           --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
+#           -cf %%{name}-%%{version}-vendor.tar.gz vendor
+#
+#   NOTES:
+#       - You require GNU tar version 1.28+.
+#       - The additional options enable generation of a tarball with the same hash every time regardless of the environment.
+#         See: https://reproducible-builds.org/docs/archives/
+#       - For the value of "--mtime" use the date "2021-04-26 00:00Z" to simplify future updates.
 Source1:        %{name}-%{version}-vendor.tar.gz
 Patch0:         makefile-buildoption-commitnb.patch
 
@@ -45,5 +61,9 @@ rm -rf %{buildroot}/*
 %{_bindir}/%{name}
 
 %changelog
-* Wed Jan 20 2021 Nicolas Guibourge <nicolasg@microsoft.com> - 1.6.7-1
+* Tue Jun 08 2021 Henry Beberman <henry.beberman@microsoft.com> 1.6.7-3
+- Increment release to force republishing using golang 1.15.13.
+* Mon Apr 26 2021 Nicolas Guibourge <nicolasg@microsoft.com> 1.6.7-2
+- Increment release to force republishing using golang 1.15.11.
+* Wed Jan 20 2021 Nicolas Guibourge <nicolasg@microsoft.com> 1.6.7-1
 - Original version for CBL-Mariner.
