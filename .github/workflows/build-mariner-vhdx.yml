@@ -44,5 +44,5 @@ jobs:
         with:
           name: CBL-Mariner-VHDX
           path: |
-            out/images/core-efi-nvpkg/*.vhdx
+            out/images/core-efi/*.vhdx
             out/images/meta-user-data.iso
