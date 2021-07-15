@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.2
         with: 
-          ref: 'ruinedstar/release'
+          ref: 'release'
           
       - name: Set up Go 1.15
         uses: actions/setup-go@v2
